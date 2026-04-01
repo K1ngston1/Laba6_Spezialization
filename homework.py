@@ -13,14 +13,11 @@ def calculate_specialization_index(nm_base, noo, noa):
     return si, status
 
 def calculate_ck_metrics(wmc, dit, cbo, lcom, rfc, thresholds):
-    """Check metrics against thresholds and return list of booleans for red flag."""
-    # LCOM threshold is now 0.5 (since in variant data it's 0.xx)
     return [wmc > thresholds['WMC'], dit > thresholds['DIT'],
             cbo > thresholds['CBO'], lcom > thresholds['LCOM'],
             rfc > thresholds['RFC']]
 
 def calculate_mood(total_methods, hidden_methods, total_attrs, hidden_attrs, coupling_factor, poly_factor):
-    """Calculate MOOD metrics percentages."""
     mhf = (hidden_methods / total_methods * 100) if total_methods > 0 else 0
     ahf = (hidden_attrs / total_attrs * 100) if total_attrs > 0 else 0
     cof = coupling_factor * 100
@@ -30,7 +27,6 @@ def calculate_mood(total_methods, hidden_methods, total_attrs, hidden_attrs, cou
 def calculate_ucp(actors_simple, actors_avg, actors_complex,
                   uc_simple, uc_avg, uc_complex,
                   tcf, ecf, hours_per_ucp=20):
-    """Calculate UCP and person-hours."""
     actor_weights = {'simple': 1, 'average': 2, 'complex': 3}
     uc_weights = {'simple': 5, 'average': 10, 'complex': 15}
     uaw = (actors_simple * actor_weights['simple'] +
@@ -45,26 +41,22 @@ def calculate_ucp(actors_simple, actors_avg, actors_complex,
     return ucp, hours
 
 def calculate_pert(optimistic, most_likely, pessimistic):
-    """Calculate PERT expected time, standard deviation, and safe deadline."""
     expected = (optimistic + 4 * most_likely + pessimistic) / 6
     sd = (pessimistic - optimistic) / 6
     safe_deadline = expected + 2 * sd
     return expected, sd, safe_deadline
 
-# ===================================================
-# Variant data for Завдання 3 (all 20 systems)
-# ===================================================
 class VariantData:
     """Central storage for all variant data."""
     def __init__(self):
-        # Key: system name, value: tuple of (composition, ucp, pert)
+
         self.data = {
             "SmartClinic": (
-                # Composition: (screens_s, screens_m, screens_h, reports_s, reports_m, reports_h, gl_3_modules, prod_label)
+
                 (5, 3, 1, 2, 1, 1, 3, "Very High"),
-                # UCP: (actors_s, actors_m, actors_h, uc_s, uc_m, uc_h, tcf, ecf)
+
                 (2, 1, 2, 5, 3, 1, 0.95, 0.85),
-                # PERT: (optimistic, most_likely, pessimistic)
+
                 (45, 60, 90)
             ),
             "AeroCheck": (
@@ -176,15 +168,9 @@ class VariantData:
     def get_pert(self, system):
         return self.data[system][2]
 
-# Global instance
 variant_data = VariantData()
 
-# ------------------------------
-# Existing Frames (with LCOM threshold fixed)
-# ------------------------------
-
 class HierarchyAnalyzerFrame(ttk.Frame):
-    """Frame for Hierarchy Analyzer."""
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
@@ -228,11 +214,9 @@ class HierarchyAnalyzerFrame(ttk.Frame):
             messagebox.showerror("Error", "Please enter valid numeric values.")
 
 class CKMetricsFrame(ttk.Frame):
-    """Frame for CK Metrics Dashboard."""
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
-        # Fixed thresholds: LCOM threshold now 0.5 (since values are 0..1)
         self.thresholds = {'WMC': 40, 'DIT': 5, 'CBO': 15, 'LCOM': 0.5, 'RFC': 50}
 
     def create_widgets(self):
@@ -273,7 +257,6 @@ class CKMetricsFrame(ttk.Frame):
             messagebox.showerror("Error", "Please enter numeric values for all metrics.")
 
 class MOODAnalyzerFrame(ttk.Frame):
-    """Frame for MOOD Analyzer."""
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
@@ -325,7 +308,6 @@ class MOODAnalyzerFrame(ttk.Frame):
             messagebox.showerror("Error", "Please enter valid numeric values.")
 
 class UCPCalculatorFrame(ttk.Frame):
-    """Frame for UCP Calculator with variant loading."""
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
@@ -333,14 +315,12 @@ class UCPCalculatorFrame(ttk.Frame):
     def create_widgets(self):
         ttk.Label(self, text="UCP Calculator", font=("Arial", 12, "bold")).grid(row=0, column=0, columnspan=6, pady=10)
 
-        # System selector row
         ttk.Label(self, text="Select System (optional):").grid(row=1, column=0, sticky=tk.W, padx=5)
         self.ucp_system_var = tk.StringVar()
         self.ucp_system_combo = ttk.Combobox(self, textvariable=self.ucp_system_var, values=variant_data.get_system_names(), width=20)
         self.ucp_system_combo.grid(row=1, column=1, padx=5)
         ttk.Button(self, text="Load Variant Data", command=self.load_ucp_variant).grid(row=1, column=2, padx=5)
 
-        # Actors row (now starting at row=2)
         ttk.Label(self, text="Actors (Simple):").grid(row=2, column=0, sticky=tk.W, padx=5)
         self.actors_simple = ttk.Entry(self, width=10)
         self.actors_simple.grid(row=2, column=1, padx=5)
@@ -351,7 +331,6 @@ class UCPCalculatorFrame(ttk.Frame):
         self.actors_complex = ttk.Entry(self, width=10)
         self.actors_complex.grid(row=2, column=5, padx=5)
 
-        # Use Cases row (row=3)
         ttk.Label(self, text="Use Cases (Simple):").grid(row=3, column=0, sticky=tk.W, padx=5)
         self.uc_simple = ttk.Entry(self, width=10)
         self.uc_simple.grid(row=3, column=1, padx=5)
@@ -362,7 +341,6 @@ class UCPCalculatorFrame(ttk.Frame):
         self.uc_complex = ttk.Entry(self, width=10)
         self.uc_complex.grid(row=3, column=5, padx=5)
 
-        # TCF, ECF (row=4 and 5)
         ttk.Label(self, text="TCF (Technical Complexity Factor):").grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=5)
         self.tcf = ttk.Entry(self, width=10)
         self.tcf.grid(row=4, column=2, padx=5, sticky=tk.W)
@@ -370,7 +348,6 @@ class UCPCalculatorFrame(ttk.Frame):
         self.ecf = ttk.Entry(self, width=10)
         self.ecf.grid(row=5, column=2, padx=5, sticky=tk.W)
 
-        # Button and result (row=6 and 7)
         ttk.Button(self, text="Calculate", command=self.calculate).grid(row=6, column=0, columnspan=6, pady=10)
         self.result_label = ttk.Label(self, text="", font=("Arial", 10))
         self.result_label.grid(row=7, column=0, columnspan=6)
@@ -380,7 +357,6 @@ class UCPCalculatorFrame(ttk.Frame):
         if not system:
             return
         ucp_data = variant_data.get_ucp(system)
-        # ucp_data: (actors_s, actors_m, actors_h, uc_s, uc_m, uc_h, tcf, ecf)
         self.actors_simple.delete(0, tk.END)
         self.actors_simple.insert(0, str(ucp_data[0]))
         self.actors_avg.delete(0, tk.END)
@@ -415,7 +391,6 @@ class UCPCalculatorFrame(ttk.Frame):
             messagebox.showerror("Error", "Please enter valid numeric values.")
 
 class PERTRiskEngineFrame(ttk.Frame):
-    """Frame for PERT Risk Engine with graph and variant loading."""
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
@@ -425,14 +400,12 @@ class PERTRiskEngineFrame(ttk.Frame):
     def create_widgets(self):
         ttk.Label(self, text="PERT Risk Engine", font=("Arial", 12, "bold")).grid(row=0, column=0, columnspan=2, pady=10)
 
-        # System selector row
         ttk.Label(self, text="Select System (optional):").grid(row=1, column=0, sticky=tk.W, padx=5)
         self.pert_system_var = tk.StringVar()
         self.pert_system_combo = ttk.Combobox(self, textvariable=self.pert_system_var, values=variant_data.get_system_names(), width=20)
         self.pert_system_combo.grid(row=1, column=1, padx=5)
         ttk.Button(self, text="Load Variant Data", command=self.load_pert_variant).grid(row=1, column=2, padx=5)
 
-        # Input fields (shifted down by 1 row)
         ttk.Label(self, text="Optimistic (O):").grid(row=2, column=0, sticky=tk.W, padx=5)
         self.optimistic = ttk.Entry(self, width=10)
         self.optimistic.grid(row=2, column=1, padx=5)
@@ -496,7 +469,6 @@ class CommercialProposalFrame(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
-        # Will be set by Application
         self.app = None
 
     def create_widgets(self):
@@ -527,7 +499,6 @@ class CommercialProposalFrame(ttk.Frame):
             messagebox.showinfo("Info", "Please ensure you have calculated results in UCP and PERT frames first.")
             return
 
-        # Get UCP result from label
         ucp_result = ucp_frame.result_label.cget("text")
         match = re.search(r"Estimated Person-Hours = ([\d\.]+)", ucp_result)
         if match:
@@ -538,18 +509,13 @@ class CommercialProposalFrame(ttk.Frame):
             messagebox.showwarning("Warning", "Could not parse UCP result. Please calculate UCP first.")
             return
 
-        # Get PERT SD from label
         pert_result = pert_frame.result_label.cget("text")
         match = re.search(r"Std Dev: ([\d\.]+)", pert_result)
         if match:
             sd = float(match.group(1))
-            # Get expected time from PERT
             match_exp = re.search(r"Expected Time \(E\): ([\d\.]+)", pert_result)
             if match_exp:
                 exp = float(match_exp.group(1))
-                # Convert days to hours (assume 8 hours per day)
-                exp_hours = exp * 8
-                # Risk buffer hours = 2 * SD (in days) * 8 hours/day
                 buffer_hours = 2 * sd * 8
                 buffer_pct = (buffer_hours / hours) * 100 if hours > 0 else 0
                 self.risk_reserve.delete(0, tk.END)
@@ -578,12 +544,7 @@ class CommercialProposalFrame(ttk.Frame):
         except ValueError:
             messagebox.showerror("Error", "Please enter valid numeric values.")
 
-# ------------------------------
-# NEW FRAMES FOR STEPS 1, 4, 5
-# ------------------------------
-
 class ConceptualDesignFrame(ttk.Frame):
-    """Step 1: Conceptual design - describe system, scenarios, key classes, subsystems."""
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
@@ -591,7 +552,6 @@ class ConceptualDesignFrame(ttk.Frame):
     def create_widgets(self):
         ttk.Label(self, text="Conceptual Design (Step 1)", font=("Arial", 12, "bold")).grid(row=0, column=0, columnspan=2, pady=10)
 
-        # System name and description
         ttk.Label(self, text="System Name:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=2)
         self.system_name = ttk.Entry(self, width=40)
         self.system_name.grid(row=1, column=1, padx=5, pady=2)
@@ -600,7 +560,6 @@ class ConceptualDesignFrame(ttk.Frame):
         self.system_desc = tk.Text(self, height=3, width=40)
         self.system_desc.grid(row=2, column=1, padx=5, pady=2)
 
-        # Scenarios (NSS)
         ttk.Label(self, text="Scenarios (NSS - 3 scenarios):", font=("Arial", 10, "bold")).grid(row=3, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
         self.scenarios = []
         for i in range(3):
@@ -610,7 +569,6 @@ class ConceptualDesignFrame(ttk.Frame):
             entry.grid(row=4+i, column=1, padx=5, pady=2)
             self.scenarios.append(entry)
 
-        # Key Classes (NKC)
         ttk.Label(self, text="Key Classes (NKC - 5 classes):", font=("Arial", 10, "bold")).grid(row=7, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
         self.key_classes = []
         for i in range(5):
@@ -620,7 +578,6 @@ class ConceptualDesignFrame(ttk.Frame):
             entry.grid(row=8+i, column=1, padx=5, pady=2)
             self.key_classes.append(entry)
 
-        # Subsystems (NSU)
         ttk.Label(self, text="Subsystems (NSU - 2-3 subsystems):", font=("Arial", 10, "bold")).grid(row=13, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
         self.subsystems = []
         for i in range(3):
@@ -653,7 +610,6 @@ class ConceptualDesignFrame(ttk.Frame):
         for s in subs:
             summary += f"  - {s}\n"
 
-        # Scale assessment
         if len(subs) >= 3 and len(scenarios) >= 3:
             scale = "System is large-scale (high complexity)."
         elif len(subs) >= 2 and len(scenarios) >= 2:
@@ -666,22 +622,19 @@ class ConceptualDesignFrame(ttk.Frame):
         self.summary_text.insert(tk.END, summary)
 
 class ApplicationCompositionFrame(ttk.Frame):
-    """Step 1: Application Composition Model – Object Points and early effort."""
+
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
 
     def create_widgets(self):
         ttk.Label(self, text="Application Composition Model (Step 1)", font=("Arial", 12, "bold")).grid(row=0, column=0, columnspan=3, pady=10)
-
-        # System selection
         ttk.Label(self, text="Select System:").grid(row=1, column=0, sticky=tk.W, padx=5)
         self.system_var = tk.StringVar()
         self.system_combo = ttk.Combobox(self, textvariable=self.system_var, values=variant_data.get_system_names(), width=20)
         self.system_combo.grid(row=1, column=1, padx=5)
         self.system_combo.bind("<<ComboboxSelected>>", self.on_system_selected)
 
-        # Display fields
         self.labels = {}
         row = 2
         fields = [
@@ -705,7 +658,6 @@ class ApplicationCompositionFrame(ttk.Frame):
     def on_system_selected(self, event):
         system = self.system_var.get()
         comp = variant_data.get_composition(system)
-        # comp: (screens_s, screens_m, screens_h, reports_s, reports_m, reports_h, gl3, prod_label)
         screens = f"{comp[0]} S / {comp[1]} M / {comp[2]} H"
         reports = f"{comp[3]} S / {comp[4]} M / {comp[5]} H"
         self.labels["screens"].config(text=screens)
@@ -720,7 +672,6 @@ class ApplicationCompositionFrame(ttk.Frame):
             return
         comp = variant_data.get_composition(system)
 
-        # Weights
         screen_weights = {"S": 1, "M": 2, "H": 3}
         report_weights = {"S": 2, "M": 5, "H": 8}
         gl3_weight = 10
@@ -730,7 +681,6 @@ class ApplicationCompositionFrame(ttk.Frame):
         gl3 = comp[6]
         prod_label = comp[7]
 
-        # Object Points (OP)
         op = (screens_s * screen_weights["S"] +
               screens_m * screen_weights["M"] +
               screens_h * screen_weights["H"] +
@@ -739,7 +689,6 @@ class ApplicationCompositionFrame(ttk.Frame):
               reports_h * report_weights["H"] +
               gl3 * gl3_weight)
 
-        # Productivity in OP/person-month
         prod_map = {
             "Very Low": 5,
             "Low": 7,
@@ -748,19 +697,13 @@ class ApplicationCompositionFrame(ttk.Frame):
             "Extra High": 15
         }
         prod = prod_map.get(prod_label, 10)
-
-        # Reuse factor 20%
         reuse = 0.20
         effort_pm = (op * (1 - reuse)) / prod
-
-        # Managerial questions
         months_target = 3
         devs_needed = effort_pm / months_target
-        # Impact of low productivity: use the lowest productivity (5) to see the difference
         low_prod = 5
         effort_low_prod = (op * (1 - reuse)) / low_prod
-        impact_days = (effort_low_prod - effort_pm) * 20   # assume 20 working days per month
-
+        impact_days = (effort_low_prod - effort_pm) * 20
         self.result_text.delete(1.0, tk.END)
         self.result_text.insert(tk.END, f"** Object Points Calculation **\n")
         self.result_text.insert(tk.END, f"Total Object Points (OP): {op:.2f}\n")
@@ -774,7 +717,6 @@ class ApplicationCompositionFrame(ttk.Frame):
                                         "Consider training or hiring more experienced developers.\n")
 
 class CouplingAnalysisFrame(ttk.Frame):
-    """Step 4: Coupling analysis - compare tight vs loose coupling."""
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
@@ -782,7 +724,6 @@ class CouplingAnalysisFrame(ttk.Frame):
     def create_widgets(self):
         ttk.Label(self, text="Coupling Analysis (Step 4)", font=("Arial", 12, "bold")).grid(row=0, column=0, columnspan=2, pady=10)
 
-        # System selector
         ttk.Label(self, text="Select System:").grid(row=1, column=0, sticky=tk.W, padx=5)
         self.system_var = tk.StringVar()
         systems = [
@@ -795,7 +736,6 @@ class CouplingAnalysisFrame(ttk.Frame):
         self.system_combo.grid(row=1, column=1, padx=5)
         self.system_combo.bind("<<ComboboxSelected>>", self.on_system_selected)
 
-        # Data for each system (Class A, Class B, Scenario A description, Scenario B description)
         self.coupling_data = {
             "SmartClinic": {
                 "classA": "Doctor", "classB": "ERecipe",
@@ -899,7 +839,6 @@ class CouplingAnalysisFrame(ttk.Frame):
             }
         }
 
-        # Labels for displaying classes
         ttk.Label(self, text="Class A (Sender):").grid(row=2, column=0, sticky=tk.W, padx=5, pady=2)
         self.classA_label = ttk.Label(self, text="", relief=tk.SUNKEN, width=30)
         self.classA_label.grid(row=2, column=1, padx=5, pady=2)
@@ -908,12 +847,10 @@ class CouplingAnalysisFrame(ttk.Frame):
         self.classB_label = ttk.Label(self, text="", relief=tk.SUNKEN, width=30)
         self.classB_label.grid(row=3, column=1, padx=5, pady=2)
 
-        # Tight coupling scenario
         ttk.Label(self, text="Tight Coupling Scenario (passes full object):", font=("Arial", 10, "bold")).grid(row=4, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
         self.tight_text = tk.Text(self, height=3, width=70)
         self.tight_text.grid(row=5, column=0, columnspan=2, padx=5, pady=2)
 
-        # Loose coupling scenario
         ttk.Label(self, text="Loose Coupling Scenario (passes minimal data):", font=("Arial", 10, "bold")).grid(row=6, column=0, columnspan=2, sticky=tk.W, padx=5, pady=5)
         self.loose_text = tk.Text(self, height=3, width=70)
         self.loose_text.grid(row=7, column=0, columnspan=2, padx=5, pady=2)
@@ -971,7 +908,6 @@ class CouplingAnalysisFrame(ttk.Frame):
         self.analysis_text.insert(tk.END, analysis)
 
 class ManagementReportFrame(ttk.Frame):
-    """Step 5: Management report synthesizing results from other modules."""
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
@@ -979,7 +915,6 @@ class ManagementReportFrame(ttk.Frame):
     def create_widgets(self):
         ttk.Label(self, text="Management Report (Step 5)", font=("Arial", 12, "bold")).grid(row=0, column=0, columnspan=2, pady=10)
 
-        # Input fields for key metrics (can be taken from other frames, but user can enter manually)
         ttk.Label(self, text="SI (Specialization Index):").grid(row=1, column=0, sticky=tk.W, padx=5)
         self.si_entry = ttk.Entry(self, width=10)
         self.si_entry.grid(row=1, column=1, padx=5)
@@ -1011,20 +946,20 @@ class ManagementReportFrame(ttk.Frame):
             messagebox.showerror("Error", "Please enter numeric values for metrics.")
             return
 
-        # Thresholds
+
         thresholds = {'WMC': 40, 'CBO': 15, 'LCOM': 0.5, 'SI': 0.5}
 
         report = "MANAGEMENT REPORT\n"
         report += "="*40 + "\n\n"
 
-        # 1) Readiness for new modules
+
         if wmc > thresholds['WMC'] or cbo > thresholds['CBO']:
             report += "❌ **Архітектура НЕ готова до впровадження нових модулів.**\n"
             report += "   Високі показники WMC або CBO можуть спричинити 'ефект доміно' при змінах.\n\n"
         else:
             report += "✅ **Архітектура готова до розширення.**\n\n"
 
-        # 2) Risk diagnosis
+
         risks = []
         if si > 0.8:
             risks.append(f"SI = {si:.2f} (>0.8): Проблема в ієрархії — нащадки надто сильно змінюють батьківську логіку.")
@@ -1055,7 +990,6 @@ class ManagementReportFrame(ttk.Frame):
             report += "  - Архітектура в задовільному стані; можна продовжувати розробку без термінових змін.\n"
         report += "\n"
 
-        # 4) Final verdict
         report += "**Фінальний вердикт:**\n"
         if wmc > 40 or cbo > 20 or lcom > 0.9:
             report += "  Негайно переписати архітектуру. Технічний борг загрожує зривом термінів.\n"
@@ -1066,10 +1000,6 @@ class ManagementReportFrame(ttk.Frame):
 
         self.report_text.delete(1.0, tk.END)
         self.report_text.insert(tk.END, report)
-
-# ------------------------------
-# Main Application (updated)
-# ------------------------------
 
 class Application(tk.Tk):
     def __init__(self):
@@ -1083,7 +1013,6 @@ class Application(tk.Tk):
         self.main_frame = ttk.Frame(self)
         self.main_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        # Buttons for all frames
         buttons = [
             ("Conceptual Design", self.show_conceptual),
             ("Application Composition", self.show_composition),
@@ -1099,14 +1028,12 @@ class Application(tk.Tk):
         for text, cmd in buttons:
             ttk.Button(sidebar, text=text, command=cmd).pack(fill=tk.X, padx=5, pady=5)
 
-        # Initialize all frames
         self.frames = {}
         self.frames['Conceptual'] = ConceptualDesignFrame(self.main_frame)
         self.frames['Composition'] = ApplicationCompositionFrame(self.main_frame)
         self.frames['Hierarchy'] = HierarchyAnalyzerFrame(self.main_frame)
         self.frames['CK'] = CKMetricsFrame(self.main_frame)
         self.frames['MOOD'] = MOODAnalyzerFrame(self.main_frame)
-        # Store UCP and PERT frames for later use
         self.ucp_frame = UCPCalculatorFrame(self.main_frame)
         self.frames['UCP'] = self.ucp_frame
         self.pert_frame = PERTRiskEngineFrame(self.main_frame)
