@@ -5,12 +5,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 import re
 
-# ------------------------------
-# Helper functions for calculations
-# ------------------------------
-
 def calculate_specialization_index(nm_base, noo, noa):
-    """Calculate Specialization Index and return status."""
     if nm_base == 0:
         return 0, "Invalid (NM_base cannot be zero)"
     si = (noo + noa) / nm_base
