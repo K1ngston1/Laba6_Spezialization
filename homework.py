@@ -302,7 +302,7 @@ class PERTRiskEngineFrame(ttk.Frame):
 
             self.result_label.config(text=f"Expected Time (E): {exp:.2f}\nStd Dev: {sd:.2f}\nSafe Deadline (E+2SD): {safe:.2f}")
 
-            # Clear previous graph
+
             if self.canvas:
                 self.canvas.get_tk_widget().destroy()
             self.ax.clear()
@@ -322,7 +322,6 @@ class PERTRiskEngineFrame(ttk.Frame):
             messagebox.showerror("Error", "Please enter numeric values.")
 
 class CommercialProposalFrame(ttk.Frame):
-    """Frame for Commercial Proposal Generator."""
     def __init__(self, parent):
         super().__init__(parent)
         self.create_widgets()
@@ -362,9 +361,7 @@ class CommercialProposalFrame(ttk.Frame):
         except ValueError:
             messagebox.showerror("Error", "Please enter valid numeric values.")
 
-# ------------------------------
-# Main Application with Sidebar
-# ------------------------------
+
 
 class Application(tk.Tk):
     def __init__(self):
@@ -397,7 +394,6 @@ class Application(tk.Tk):
         self.frames['PERT'] = PERTRiskEngineFrame(self.main_frame)
         self.frames['Proposal'] = CommercialProposalFrame(self.main_frame)
 
-        # Show default frame
         self.show_hierarchy()
 
     def show_frame(self, name):
